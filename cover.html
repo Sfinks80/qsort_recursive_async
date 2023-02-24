@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>q_sort_recursive: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">q_sort_recursive/quick_sort.go (75.9%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "fmt"
+        "math/rand"
+        "os"
+        "strconv"
+        "sync"
+        "time"
+)
+
+func main() <span class="cov0" title="0">{
+        // fmt.Println(Sort([]int{5, 786, 23, 5, 342, 7, 8, 987, 9, 0, 3, 547, 567, 4566, 75, 3456, 46, 4356, 345, 76870, 56, 7, 546, 78}, true))
+        // fmt.Println(Sort([]int{547, 286, 75, 3456, 512, 4356, 345, 56}, true))
+        // fmt.Println(Sort([]int{12, 34, 23, 45, 547, 286}))
+
+        rand.Seed(time.Now().UnixNano())
+        co := 100000
+        s := make([]int, 0, co)
+        for i := 0; i &lt; co; i++ </span><span class="cov0" title="0">{
+                s = append(s, int(rand.Uint32()))
+        }</span>
+        <span class="cov0" title="0">t := time.Now()
+        Sort(s)
+        fmt.Println(float64(time.Since(t)/1000) / 1000)
+        good := 1
+        for i := 1; i &lt; co; i++ </span><span class="cov0" title="0">{
+                if s[i-1] &lt;= s[i] </span><span class="cov0" title="0">{
+                        good++
+                }</span>
+        }
+        <span class="cov0" title="0">fmt.Println(good)</span>
+}
+
+const AsyncLimitEnvName = "QUICK_SORT_ASYNC_LIMIT"
+
+func loadAsyncLimit() int <span class="cov8" title="1">{
+        def := 1000
+        str := os.Getenv(AsyncLimitEnvName)
+        if str == "" </span><span class="cov8" title="1">{
+                return def
+        }</span>
+        <span class="cov8" title="1">if lim, err := strconv.Atoi(str); err == nil </span><span class="cov8" title="1">{
+                return lim
+        }</span>
+        <span class="cov8" title="1">return def</span>
+}
+
+func Sort(a []int, asyncLimit ...int) []int <span class="cov8" title="1">{
+        if len(a) &lt; 2 </span><span class="cov8" title="1">{
+                return a
+        }</span>
+
+        <span class="cov8" title="1">if len(asyncLimit) == 0 </span><span class="cov8" title="1">{
+                asyncLimit = append(asyncLimit, loadAsyncLimit())
+        }</span>
+
+        <span class="cov8" title="1">i, j := 0, len(a)-1
+        k := a[j&gt;&gt;1]
+        for i &lt;= j </span><span class="cov8" title="1">{
+                for ; a[i] &lt; k; i++ </span>{<span class="cov8" title="1">
+                }</span>
+                <span class="cov8" title="1">for ; a[j] &gt; k; j-- </span>{<span class="cov8" title="1">
+                }</span>
+                <span class="cov8" title="1">if i &lt;= j </span><span class="cov8" title="1">{
+                        a[i], a[j] = a[j], a[i]
+                        i++
+                        j--
+                }</span>
+        }
+
+        <span class="cov8" title="1">var wg *sync.WaitGroup
+        lSize, rSize := j+1, len(a)-i
+        if lSize &gt; asyncLimit[0] || rSize &gt; asyncLimit[0] </span><span class="cov8" title="1">{
+                wg = new(sync.WaitGroup)
+        }</span>
+        <span class="cov8" title="1">if j &gt; 0 </span><span class="cov8" title="1">{
+                if lSize &gt; asyncLimit[0] </span><span class="cov8" title="1">{
+                        sortAsync(a[:j+1], asyncLimit, wg)
+                }</span> else<span class="cov8" title="1"> {
+                        Sort(a[:j+1], asyncLimit...)
+                }</span>
+        }
+        <span class="cov8" title="1">if i &lt; len(a)-1 </span><span class="cov8" title="1">{
+                if rSize &gt; asyncLimit[0] </span><span class="cov8" title="1">{
+                        sortAsync(a[i:], asyncLimit, wg)
+                }</span> else<span class="cov8" title="1"> {
+                        Sort(a[i:], asyncLimit...)
+                }</span>
+        }
+        <span class="cov8" title="1">if lSize &gt; asyncLimit[0] || rSize &gt; asyncLimit[0] </span><span class="cov8" title="1">{
+                wg.Wait()
+        }</span>
+
+        <span class="cov8" title="1">return a</span>
+}
+
+var v func()
+
+func sortAsync(a, asyncLimit []int, wg *sync.WaitGroup) <span class="cov8" title="1">{
+        wg.Add(1)
+        if v != nil </span><span class="cov8" title="1">{
+                v()
+        }</span>
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                defer wg.Done()
+                Sort(a, asyncLimit...)
+        }</span>()
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
